@@ -3,140 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zebra Browser Print Test (Handlebars & Labelary)</title>
+    <title>Zebra Browser Print - Advanced & Direct Print</title>
     <style>
         body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; }
         .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
         .section { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
         .section:last-child { border-bottom: none; }
-        h2, h3 { margin-top: 0; color: #333; }
+        h2, h3, h4 { margin-top: 0; color: #333; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input[type="text"], input[type="date"], input[type="number"], select, textarea {
-            width: calc(100% - 22px);
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
+            width: calc(100% - 22px); padding: 10px; margin-bottom: 10px;
+            border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 0.9em;
         }
-        textarea { min-height: 200px; font-family: monospace; font-size: 0.9em; white-space: pre; overflow-x: auto;}
+        textarea { min-height: 150px; font-family: monospace; white-space: pre; overflow-x: auto; }
+        #mainPayloadJson { min-height: 250px; }
+        #directZplInput {min-height: 100px;}
+        .dimension-inputs { display: flex; gap: 10px; margin-bottom: 10px; }
+        .dimension-inputs > div { flex: 1; }
         button {
             background-color: #007bff; color: white; padding: 10px 15px;
             border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;
         }
         button:hover { background-color: #0056b3; }
         button:disabled { background-color: #ccc; cursor: not-allowed; }
-        #previewBtn { background-color: #17a2b8; }
-        #previewBtn:hover { background-color: #138496; }
+        .preview-btn-class { background-color: #17a2b8; } /* Common class for preview buttons */
+        .preview-btn-class:hover { background-color: #138496; }
         #statusLog {
             margin-top: 15px; padding: 10px; border: 1px solid #ddd;
-            background-color: #f9f9f9; max-height: 250px; overflow-y: auto;
-            font-size: 0.9em;
+            background-color: #f9f9f9; max-height: 300px; overflow-y: auto; font-size: 0.9em;
         }
-        #statusLog p { margin: 0 0 5px 0; padding-bottom: 5px; border-bottom: 1px dotted #eee; }
+        #statusLog p { margin: 0 0 5px 0; padding-bottom: 5px; border-bottom: 1px dotted #eee; word-break: break-all; }
         #statusLog p:last-child { border-bottom: none; }
         .error { color: red; font-weight: bold; }
         .success { color: green; }
         .info { color: blue; }
+        .warn { color: orange; }
 
-        /* Styles for Labelary Preview */
-        .preview-container { margin-top: 15px; }
-        #labelPreviewImage {
-            border: 1px solid #ccc;
-            min-height: 50px; /* Placeholder height */
-            max-width: 300px; /* Adjust as needed */
-            display: block; /* To center if parent is text-align:center */
-            margin: 10px auto; /* Basic centering */
-            background-color: #f0f0f0;
+        .preview-area { margin-top: 15px; }
+        .preview-item { margin-bottom: 15px; padding:10px; border:1px solid #e0e0e0; background-color:#f9f9f9; }
+        .preview-item h4 { margin-top:0; }
+        .preview-item img {
+            border: 1px solid #ccc; max-width: 250px; display: block; margin: 5px 0; background-color: #f0f0f0;
         }
-        #labelPreviewImage[src=""] {
-            display: none; /* Hide if no src */
-        }
+        .preview-item img[src=""] { display: none; }
+        .preview-item textarea { min-height: 100px; font-size: 0.8em; background-color: #fff; }
     </style>
-    <!-- 1. Include Zebra Browser Print JS Library -->
-    <script type="text/javascript" src="./BrowserPrint-3.1.250.min.js"></script> <!-- ADJUST PATH -->
-
-    <!-- 2. Include Handlebars JS Library (CDN or local) -->
+    <script type="text/javascript" src="./BrowserPrint-3.1.250.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.min.js"></script>
-
-    <!-- 3. Include your ZebraBrowserPrintWrapper Class -->
-    <script src="./script.js"></script> <!-- ADJUST PATH -->
+    <script src="./script.js"></script>
 </head>
 <body>
 
 <div class="container">
-
-    <h1>DS4600 Barcode Scanner Test</h1>
-
-    <div class="section">
-            <label for="barcodeInput">Scan Barcode Here:</label>
-            <input type="text" id="barcodeInput" placeholder="Click here and then scan..." autofocus>
-            <button id="clearInputBtn">Clear Input</button>
-    </div>
-
-    <div class="section">
-            <h2> Scanned Data:</h2>
-            <p id="lastScannedData" class="scanned-data-display">---</p>
-    </div>
-
-    <h1>Zebra Browser Print Test (Handlebars & Labelary)</h1>
+    <h1>Zebra Browser Print - Advanced & Direct Print</h1>
 
     <div class="section">
         <h2>1. Printer Setup</h2>
         <button id="scanPrintersBtn">Scan for Printers</button>
-        <label for="printerList">Select Printer:</label>
+        <label for="printerList">Select Fallback/UI Printer (used if not specified in payload):</label>
         <select id="printerList">
             <option value="">-- No printers scanned --</option>
         </select>
-        <button id="readStatusBtn" disabled>Read Printer Status</button>
+        <button id="readStatusBtn" disabled>Read Status (UI Selected Printer)</button>
     </div>
 
     <div class="section">
-        <h2>2. Label Data (for Kit Labels)</h2>
-        <form id="labelDataForm">
-            <!-- ... (form fields remain the same as previous version) ... -->
-            <p style="font-size:0.8em; color: #555;">Top-level fields (GDTClientID, AccountID) are optional for this simple test unless your ZPL template explicitly uses them as <code>{{GDTClientID}}</code> etc.</p>
-            <div>
-                <label for="gdtClientID">GDTClientID (Optional for this template):</label>
-                <input type="text" id="gdtClientID" value="95">
-            </div>
-            <div>
-                <label for="fulfillmentEntityID">FulfillmentEntityID (Optional for this template):</label>
-                <input type="text" id="fulfillmentEntityID" value="12">
-            </div>
-            <div>
-                <label for="accountID">AccountID (Optional for this template):</label>
-                <input type="text" id="accountID" value="12345">
-            </div>
-            <hr>
-            <h3>KitLabelsRequest Data</h3>
-            <div>
-                <label for="lotNumber">LotNumber (for <code>{{LotNumber}}</code>):</label>
-                <input type="text" id="lotNumber" value="LOT-HBS-789" required>
-            </div>
-            <div>
-                <label for="kitSKU">KitSKU (used to derive <code>{{KitType}}</code>):</label>
-                <input type="text" id="kitSKU" value="SKU-HBS-001" required>
-            </div>
-            <div>
-                <label for="expirationDate">ExpirationDate (for <code>{{ExpirationDate}}</code>):</label>
-                <input type="text" id="expirationDate" value=" May 2026" required>
-            </div>
-            <div>
-                <label for="kitID">KitID (for <code>{{KitId}}</code>):</label>
-                <input type="text" id="kitID" value="KC90029409" required>
-            </div>
-             <div>
-                <label for="printCount">Number of this Label Design to Print:</label>
-                <input type="number" id="printCount" value="1" min="1" required>
-            </div>
-        </form>
-    </div>
-
-    <div class="section">
-        <h2>3. ZPL Template</h2>
-        <label for="zplTemplate">LabelTemplateZPL (Uses Handlebars: <code>{{variableName}}</code>):</label>
-        <textarea id="zplTemplate">
+        <h2>2. ZPL Templates (for JSON Payload)</h2>
+        <div>
+            <label for="kitZplTemplateTextarea">Kit Label ZPL Template (<code>{{KitId}}</code>, etc.):</label>
+            <textarea id="kitZplTemplateTextarea">
 ^XA
 ^PW456
 ^LL146
@@ -144,39 +79,122 @@
 ^LS0
 ^LH0,0
 ^FX --- Left Section ---
-^FX Vertical Reference Text (Dynamic - Thinner)
+^FX Vertical Reference Text
 ^FO15,22 ^A0B,13,15^FD{{KitId}}^FS
 ^FX QR Code
 ^FO45,10 ^BQN,2,4,Q,7^FD{{KitId}}^FS
-^FX Bottom Left Text (Dynamic - Thinner)
+^FX Bottom Left Text
 ^FO15,115 ^A0N,25,20^FD{{KitType}}^FS
 ^FX --- Vertical Separator Line ---
 ^FO160,10^GB2,126,2^FS
 ^FX --- Right Section ---
-^FX LOT (Static Label)
 ^FO180,20 ^A0N,28,28^FDLOT^FS
-^FX LOT Value (Dynamic - Thinner)
 ^FO240,22 ^A0N,25,22^FD{{LotNumber}}^FS
-^FX EXP (Static Label)
 ^FO180,60 ^A0N,28,28^FDEXP^FS
-^FX EXP Value (Dynamic - Thinner)
 ^FO240,62 ^A0N,25,22^FD{{ExpirationDate}}^FS
-^FX REF (Static Label)
 ^FO180,100 ^A0N,28,28^FDREF^FS
-^FX REF Value (Dynamic - Thinner)
 ^FO240,102 ^A0N,25,22^FD{{KitId}}^FS
 ^PQ1
 ^XZ
-        </textarea>
+            </textarea>
+        </div>
+        <div style="margin-top:15px;">
+            <label for="specimenZplTemplateTextarea">Specimen Label ZPL Template (<code>{{KitId}}</code>, <code>{{SpecimenLabel}}</code>):</label>
+            <textarea id="specimenZplTemplateTextarea">
+^XA
+^PW456
+^LL146
+^LH0,0
+~SD20
+^FO28,15
+^A0B,16,20 ^CI28
+^FD{{KitId}}^FS
+^FO60,15
+^BCN,60,N,N,N,A
+^FD{{KitId}}^FS
+^FO60,85
+^A0N,20,20 ^CI28
+^FD{{KitId}}^FS
+^FO60,110
+^A0N,20,20 ^CI28
+^FD{{SpecimenLabel}}^FS
+^XZ
+            </textarea>
+        </div>
     </div>
 
     <div class="section">
-        <h2>4. Actions & Preview</h2>
-        <button id="previewBtn">Preview First Label</button>
-        <button id="printBtn" disabled>Print Label(s)</button>
-        <div class="preview-container">
-            <h3>Labelary Preview:</h3>
-            <img id="labelPreviewImage" src="" alt="Label Preview Area">
+        <h2>3. Main JSON Payload (for Kit/Specimen Jobs)</h2>
+        <p>Use <code>{{KitZPL}}</code> and <code>{{SpecimenZPL}}</code> as placeholders for <code>TemplateZPL</code> values.</p>
+        <label for="mainPayloadJson">Payload:</label>
+        <textarea id="mainPayloadJson">{
+  "GDTClientID": 95,
+  "FulfillmentEntityID": 12,
+  "AccountID": "12345",
+  "KitLabelsRequest": {
+    "PrinterName": "YOUR_KIT_PRINTER_NAME_OR_UID_HERE",
+    "LotNumber": "LOT-JSON-789",
+    "KitSKU": "SKU-JSON-002",
+    "ExpirationDate": "2027-01-31",
+    "LabelSet": {
+      "KitLabelData": {
+        "TemplateZPL": "{{KitZPL}}",
+        "KitLabelIDs": [
+          { "KitID": "KITJSON001" },
+          { "KitID": "KITJSON002" }
+        ]
+      }
+    },
+    "SpecimenLabelData": {
+      "PrinterName": "YOUR_SPECIMEN_PRINTER_NAME_OR_UID_HERE",
+      "TemplateZPL": "{{SpecimenZPL}}",
+      "LotNumber": "LOT-JSON-789",
+      "KitSKU": "SKU-JSON-002",
+      "ExpirationDate": "2027-01-31",
+      "SpecimenLabelIDs": [
+        { "SpecimenLabel": "Blood", "KitID": "JSON001S1" },
+        { "SpecimenLabel": "Saliva", "KitID": "JSON002S2" }
+      ]
+    }
+  }
+}</textarea>
+        <div style="margin-top:10px;">
+             <button id="previewPayloadBtn" class="preview-btn-class">Preview ZPLs from Payload</button>
+             <button id="printPayloadBtn">Print All from Payload</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>4. Direct ZPL Print (e.g., ShipEngine Label)</h2>
+        <div>
+            <label for="directZplPrinterName">Printer Name/UID for Direct Print:</label>
+            <input type="text" id="directZplPrinterName" placeholder="Enter target printer name or UID">
+        </div>
+        <div class="dimension-inputs">
+            <div>
+                <label for="directZplWidth">Preview Width (inches, e.g., 4):</label>
+                <input type="number" id="directZplWidth" step="0.01" placeholder="4">
+            </div>
+            <div>
+                <label for="directZplHeight">Preview Height (inches, e.g., 6):</label>
+                <input type="number" id="directZplHeight" step="0.01" placeholder="6">
+            </div>
+        </div>
+        <div>
+            <label for="directZplInput">Raw ZPL Code:</label>
+            <textarea id="directZplInput" placeholder="^XA...^XZ"></textarea>
+        </div>
+        <div style="margin-top:10px;">
+            <button id="previewDirectZplBtn" class="preview-btn-class">Preview Direct ZPL</button>
+            <button id="printDirectZplBtn">Print Direct ZPL</button>
+        </div>
+    </div>
+
+
+    <div class="section">
+        <h2>5. Generated ZPLs & Labelary Previews</h2>
+        <div id="previewOutputArea">
+            <p>Previews will appear here.</p>
         </div>
     </div>
 
@@ -192,63 +210,28 @@
     const printerListSelect = document.getElementById('printerList');
     const scanPrintersBtn = document.getElementById('scanPrintersBtn');
     const readStatusBtn = document.getElementById('readStatusBtn');
-    const printBtn = document.getElementById('printBtn');
-    const previewBtn = document.getElementById('previewBtn'); // New button
-    const labelPreviewImage = document.getElementById('labelPreviewImage'); // New image tag
-    const zplTemplateTextarea = document.getElementById('zplTemplate');
+    
+    const mainPayloadJsonTextarea = document.getElementById('mainPayloadJson');
+    const kitZplTemplateTextarea = document.getElementById('kitZplTemplateTextarea');
+    const specimenZplTemplateTextarea = document.getElementById('specimenZplTemplateTextarea');
+    const previewPayloadBtn = document.getElementById('previewPayloadBtn');
+    const printPayloadBtn = document.getElementById('printPayloadBtn');
 
-    const barcodeInputField = document.getElementById('barcodeInput');
-    const lastScannedDataDisplay = document.getElementById('lastScannedData');
-    const clearInputBtn = document.getElementById('clearInputBtn');
+    const directZplPrinterNameInput = document.getElementById('directZplPrinterName');
+    const directZplWidthInput = document.getElementById('directZplWidth'); // New
+    const directZplHeightInput = document.getElementById('directZplHeight'); // New
+    const directZplInputTextarea = document.getElementById('directZplInput');
+    const previewDirectZplBtn = document.getElementById('previewDirectZplBtn');
+    const printDirectZplBtn = document.getElementById('printDirectZplBtn');
+    
+    const previewOutputArea = document.getElementById('previewOutputArea');
 
-    // --- Event Listener for the Input Field ---
-    // We listen for 'keydown' and specifically for the 'Enter' key,
-    // as most keyboard wedge scanners send an Enter keystroke after the data.
-    barcodeInputField.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' || event.keyCode === 13) { // 13 is the keyCode for Enter
-                event.preventDefault(); // Prevent form submission if it's in a form
-
-                const scannedValue = barcodeInputField.value.trim();
-                console.log(scannedValue,"value");
-
-                if (scannedValue) {
-                    // 1. Display last scanned data
-                    lastScannedDataDisplay.textContent = scannedValue;
-                    lastScannedDataDisplay.classList.add('highlight'); // Add class for visual feedback
-                    setTimeout(() => { // Remove highlight after a short delay
-                        lastScannedDataDisplay.classList.remove('highlight');
-                    }, 500);
-
-
-
-                    // 3. Clear the input field for the next scan
-                    barcodeInputField.value = '';
-                }
-            }
-    });
-
-    // --- Clear Input Button ---
-    clearInputBtn.addEventListener('click', function() {
-            barcodeInputField.value = '';
-            lastScannedDataDisplay.textContent = '---';
-            barcodeInputField.focus(); // Put focus back
-        });
-
-     // --- Initial focus on the input field when the page loads ---
-        // The 'autofocus' attribute on the input field often handles this,
-        // but this is a good fallback.
-        window.addEventListener('load', () => {
-            barcodeInputField.focus();
-        });
-
-    // --- UI Update Function ---
     function logStatus(message, type = "info") {
-        // ... (same logStatus function as before)
         const p = document.createElement('p');
         p.className = type;
         p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
         statusLogDiv.prepend(p);
-        if (statusLogDiv.children.length > 25) {
+        if (statusLogDiv.children.length > 75) { 
             statusLogDiv.removeChild(statusLogDiv.lastChild);
         }
         if (type === 'error') console.error(p.textContent);
@@ -256,199 +239,272 @@
         else console.log(p.textContent);
     }
 
-    // --- Initialize Wrapper ---
     let printerWrapper;
     try {
         printerWrapper = new ZebraBrowserPrintWrapper(logStatus);
-    } catch (e) { /* ... same error handling ... */ 
-        logStatus(e.message || "Failed to initialize ZebraBrowserPrintWrapper.", "error");
-        scanPrintersBtn.disabled = true;
-        readStatusBtn.disabled = true;
-        printBtn.disabled = true;
-        previewBtn.disabled = true;
+    } catch (e) {
+        logStatus(e.message || "Failed to initialize ZebraBrowserPrintWrapper. Ensure JS files are loaded.", "error");
+        [scanPrintersBtn, readStatusBtn, printPayloadBtn, printDirectZplBtn].forEach(btn => btn.disabled = true);
     }
 
-    // --- Event Listeners (scanPrintersBtn, printerListSelect, readStatusBtn remain the same) ---
-    scanPrintersBtn.addEventListener('click', async () => { /* ... same as before ... */ 
+    // --- Printer Scanning and UI Selection (mostly same as before) ---
+    scanPrintersBtn.addEventListener('click', async () => { /* ... same ... */
         if (!printerWrapper) { logStatus("Printer wrapper not initialized.", "error"); return; }
         printerListSelect.innerHTML = '<option value="">Scanning...</option>';
-        printBtn.disabled = true; readStatusBtn.disabled = true;
+        readStatusBtn.disabled = true;
         try {
             const printers = await printerWrapper.zebraScanPrinters();
-            printerListSelect.innerHTML = '<option value="">-- Select a Printer --</option>';
+            printerListSelect.innerHTML = '<option value="">-- Select Fallback/UI Printer --</option>';
             if (printers.length > 0) {
                 printers.forEach(p => {
                     const option = document.createElement('option');
-                    option.value = JSON.stringify(p);
-                    option.textContent = `${p.name} (manufacturer: ${p.manufacturer || 'N/A'}, model: ${p.model || 'N/A'}, UID: ${p.uid || 'N/A'}, Conn: ${p.connection})`;
+                    option.value = p.uid || p.name; 
+                    option.textContent = `${p.name} (UID: ${p.uid || 'N/A'}, Conn: ${p.connection || 'N/A'})`;
                     printerListSelect.appendChild(option);
                 });
                 const currentSelectedInWrapper = printerWrapper.getSelectedPrinter();
                 if (currentSelectedInWrapper) {
-                    for (let i = 0; i < printerListSelect.options.length; i++) {
-                        if (printerListSelect.options[i].value) {
-                            try {
-                                let optDevice = JSON.parse(printerListSelect.options[i].value);
-                                if (optDevice.uid === currentSelectedInWrapper.uid) {
-                                    printerListSelect.selectedIndex = i;
-                                    printBtn.disabled = false; readStatusBtn.disabled = false;
-                                    break;
-                                }
-                            } catch (e) {}
-                        }
-                    }
-                } else if (printers.length === 1 && printerListSelect.options.length > 1) {
-                    printerListSelect.selectedIndex = 1;
-                    try {
-                         printerWrapper.setSelectedPrinter(JSON.parse(printerListSelect.value));
-                         printBtn.disabled = false; readStatusBtn.disabled = false;
-                    } catch(e) { logStatus("Error auto-selecting single printer: " + e.message, "error");}
+                    const identifierToSelect = currentSelectedInWrapper.uid || currentSelectedInWrapper.name;
+                    const opt = Array.from(printerListSelect.options).find(o => o.value === identifierToSelect);
+                    if (opt) { opt.selected = true; readStatusBtn.disabled = false;}
+                    else { printerWrapper.setSelectedPrinter(null); }
                 }
-            } else { printerListSelect.innerHTML = '<option value="">No Zebra printers found</option>'; }
-        } catch (error) { printerListSelect.innerHTML = '<option value="">Error scanning printers</option>'; }
+            } else {
+                printerListSelect.innerHTML = '<option value="">No Zebra printers found</option>';
+            }
+        } catch (error) {
+            logStatus(`Error during printer scan: ${error.message || error}`, "error");
+            printerListSelect.innerHTML = '<option value="">Error scanning printers</option>';
+        }
     });
-
-    printerListSelect.addEventListener('change', function() { /* ... same as before ... */
+    printerListSelect.addEventListener('change', function() { /* ... same ... */
         if (!printerWrapper) return;
-        if (this.value && this.value !== "") {
-            try {
-                printerWrapper.setSelectedPrinter(JSON.parse(this.value));
-                printBtn.disabled = false; readStatusBtn.disabled = false;
-            } catch (e) {
-                logStatus("Error parsing selected printer from dropdown.", "error");
-                printBtn.disabled = true; readStatusBtn.disabled = true;
+        const selectedIdentifier = this.value;
+        if (selectedIdentifier && selectedIdentifier !== "") {
+            const device = printerWrapper._findDevice(selectedIdentifier);
+            if (device) {
+                printerWrapper.setSelectedPrinter(device);
+                readStatusBtn.disabled = false;
+            } else {
+                logStatus(`Could not find printer for identifier: ${selectedIdentifier}`, "warn");
+                printerWrapper.setSelectedPrinter(null);
+                readStatusBtn.disabled = true;
             }
         } else {
             printerWrapper.setSelectedPrinter(null);
-            printBtn.disabled = true; readStatusBtn.disabled = true;
+            readStatusBtn.disabled = true;
         }
     });
-
-    readStatusBtn.addEventListener('click', async () => { /* ... same as before ... */
-         if (!printerWrapper || !printerWrapper.getSelectedPrinter()) { logStatus("No printer selected.", "error"); return; }
-        logStatus("Sending status query (~HQES)...", "info");
-        printerWrapper.getSelectedPrinter().send("~HQES\r\n", async () => {
+    readStatusBtn.addEventListener('click', async () => { /* ... same ... */
+        const uiSelectedPrinter = printerWrapper.getSelectedPrinter();
+         if (!uiSelectedPrinter) {
+             logStatus("No printer selected in UI for status read.", "error"); return;
+         }
+        logStatus(`Sending status query (~HQES) to UI selected printer: ${uiSelectedPrinter.name}...`, "info");
+        uiSelectedPrinter.send("~HQES\r\n", async () => {
             logStatus("Status query sent. Waiting for response...", "info");
             try {
-                const response = await printerWrapper.readPrintJobStatus("\n", 7000);
-                logStatus(`Printer Raw Response: ${response}`, "success");
-            } catch (readError) { logStatus(`Failed to read status response: ${readError}`, "error"); }
-        }, (sendError) => { logStatus(`Failed to send status query: ${sendError}`, "error"); });
+                await printerWrapper.readPrintJobStatus("\n", 7000, uiSelectedPrinter);
+            } catch (readError) { logStatus(`Failed to read status response from ${uiSelectedPrinter.name}: ${readError}`, "error"); }
+        }, (sendError) => { logStatus(`Failed to send status query to ${uiSelectedPrinter.name}: ${sendError}`, "error"); });
     });
 
 
-    // --- Preview Button Logic ---
-    previewBtn.addEventListener('click', () => {
-        logStatus("Generating preview for the first label...", "info");
-        labelPreviewImage.src = ""; // Clear previous preview
+    // --- Common function to display a single ZPL preview item ---
+    let previewItemCounter = 0;
+    function displaySingleZplPreview(zplString, labelIdentifier, targetAreaElement, widthInches = null, heightInches = null) {
+        previewItemCounter++;
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'preview-item';
+        itemDiv.innerHTML = `<h4>${previewItemCounter}. ${labelIdentifier}</h4>
+                             <textarea readonly>${zplString}</textarea>
+                             <img id="previewImg_${previewItemCounter}" src="" alt="Labelary Preview for ${labelIdentifier}">`;
+        targetAreaElement.appendChild(itemDiv);
 
-        const lotNumber = document.getElementById('lotNumber').value;
-        const kitSKU = document.getElementById('kitSKU').value;
-        const expirationDate = document.getElementById('expirationDate').value;
-        const kitID = document.getElementById('kitID').value;
-        const zplTemplateString = zplTemplateTextarea.value;
-
-        if (!kitID || !lotNumber || !kitSKU || !expirationDate) {
-            logStatus("Please fill in KitID, LotNumber, KitSKU, and ExpirationDate for preview.", "error");
-            return;
+        const imgElement = document.getElementById(`previewImg_${previewItemCounter}`);
+        
+        let labelWidth, labelHeight;
+        if (widthInches && heightInches) {
+            labelWidth = parseFloat(widthInches).toFixed(2);
+            labelHeight = parseFloat(heightInches).toFixed(2);
+        } else {
+            // Try to parse from ZPL, otherwise default
+            let pwMatch = zplString.match(/\^PW(\d+)/);
+            let llMatch = zplString.match(/\^LL(\d+)/);
+            let labelWidthDots = pwMatch ? parseInt(pwMatch[1]) : 456;
+            let labelLengthDots = llMatch ? parseInt(llMatch[1]) : 146;
+            labelWidth = (labelWidthDots / 203).toFixed(2); // Assuming 203dpi
+            labelHeight = (labelLengthDots / 203).toFixed(2);
         }
-        if (zplTemplateString.trim() === "") {
-            logStatus("ZPL Template cannot be empty for preview.", "error");
-            return;
-        }
+        
+        const density = "8dpmm"; // Corresponds to 203dpi
+        // Labelary URL format: /v1/printers/{density}/labels/{width}x{height}/{index}/{data}
+        const labelaryUrl = `http://api.labelary.com/v1/printers/${density}/labels/${labelWidth}x${labelHeight}/0/${encodeURIComponent(zplString)}`;
+        
+        imgElement.src = labelaryUrl;
+        imgElement.style.display = 'block';
+    }
 
-        const templateData = {};
-        templateData.KitId = kitID;
-        const skuParts = kitSKU.split('-');
-        templateData.KitType = skuParts[0] || kitSKU;
-        templateData.LotNumber = lotNumber;
-        templateData.ExpirationDate = expirationDate;
 
+    // --- Payload-based Printing and Previewing (logic mostly same as before) ---
+    function getAndPreparePayloadForProcessing() { /* ... same ... */
         try {
-            if (typeof Handlebars === 'undefined') {
-                logStatus("Handlebars library not loaded. Cannot generate preview.", "error");
-                return;
-            }
-            const compiledTemplate = Handlebars.compile(zplTemplateString);
-            const renderedZpl = compiledTemplate(templateData);
-
-            // Labelary API URL construction
-            // These dimensions are from your ZPL: ^PW456 (width), ^LL146 (length)
-            // Assuming 8 dpmm (203 dpi) for conversion to inches:
-            // Width: 456 dots / 203 dpi = ~2.25 inches
-            // Height: 146 dots / 203 dpi = ~0.72 inches
-            const labelWidthInches = (456 / 203).toFixed(2);
-            const labelHeightInches = (146 / 203).toFixed(2);
-            const density = "8dpmm"; // dots per millimeter
-
-            const labelaryUrl = `http://api.labelary.com/v1/printers/${density}/labels/${labelWidthInches}x${labelHeightInches}/0/${encodeURIComponent(renderedZpl)}`;
-
-            labelPreviewImage.src = labelaryUrl;
-            logStatus("Labelary preview image requested. It should appear below.", "success");
-
+            const mainPayload = JSON.parse(mainPayloadJsonTextarea.value);
+            return mainPayload;
         } catch (e) {
-            logStatus(`Error generating ZPL for preview: ${e.message}`, "error");
-            console.error("Preview ZPL generation error:", e);
+            logStatus(`Error parsing Main JSON Payload: ${e.message}`, "error");
+            return null;
+        }
+    }
+    function generateZplsFromPayloadForPreview(payload, actualKitZPL, actualSpecimenZPL) { /* ... same ... */
+        const generatedZpls = { kit: [], specimen: [] };
+        if (!payload) return generatedZpls;
+        if (payload.KitLabelsRequest && payload.KitLabelsRequest.LabelSet && payload.KitLabelsRequest.LabelSet.KitLabelData) {
+            const kitData = payload.KitLabelsRequest.LabelSet.KitLabelData;
+            const kitRequest = payload.KitLabelsRequest;
+            let templateToUse = kitData.TemplateZPL === "{{KitZPL}}" ? actualKitZPL : kitData.TemplateZPL;
+            if (templateToUse && kitData.KitLabelIDs) {
+                try {
+                    const compiledKitTemplate = Handlebars.compile(templateToUse);
+                    kitData.KitLabelIDs.forEach(kitIdObj => {
+                        if (kitIdObj && typeof kitIdObj.KitID !== 'undefined') {
+                            const templateData = {
+                                KitId: kitIdObj.KitID,
+                                KitType: kitRequest.KitSKU ? (String(kitRequest.KitSKU).split('-')[0] || kitRequest.KitSKU) : "N/A",
+                                LotNumber: kitRequest.LotNumber || "N/A", ExpirationDate: kitRequest.ExpirationDate || "N/A"
+                            };
+                            generatedZpls.kit.push({ id: `Kit - ${templateData.KitId}`, zpl: compiledKitTemplate(templateData) });
+                        }
+                    });
+                } catch (e) { logStatus(`Preview Error (Kit): Compiling/rendering ZPL - ${e.message}`, "error"); }
+            }
+        }
+        if (payload.KitLabelsRequest && payload.KitLabelsRequest.SpecimenLabelData) {
+            const specimenData = payload.KitLabelsRequest.SpecimenLabelData;
+            let templateToUse = specimenData.TemplateZPL === "{{SpecimenZPL}}" ? actualSpecimenZPL : specimenData.TemplateZPL;
+            if (templateToUse && specimenData.SpecimenLabelIDs) {
+                try {
+                    const compiledSpecimenTemplate = Handlebars.compile(templateToUse);
+                    specimenData.SpecimenLabelIDs.forEach(specObj => {
+                        if (specObj && typeof specObj.KitID !== 'undefined' && typeof specObj.SpecimenLabel !== 'undefined') {
+                            const templateData = { KitId: specObj.KitID, SpecimenLabel: specObj.SpecimenLabel };
+                            generatedZpls.specimen.push({ id: `Specimen - ${templateData.KitId} (${templateData.SpecimenLabel})`, zpl: compiledSpecimenTemplate(templateData) });
+                        }
+                    });
+                } catch (e) { logStatus(`Preview Error (Specimen): Compiling/rendering ZPL - ${e.message}`, "error"); }
+            }
+        }
+        return generatedZpls;
+    }
+
+    previewPayloadBtn.addEventListener('click', () => { /* ... same, uses displaySingleZplPreview without width/height args ... */
+        logStatus("Generating previews from JSON payload...", "info");
+        previewOutputArea.innerHTML = ''; previewItemCounter = 0;
+        const payload = getAndPreparePayloadForProcessing();
+        if (!payload) return;
+
+        const actualKitZPL = kitZplTemplateTextarea.value;
+        const actualSpecimenZPL = specimenZplTemplateTextarea.value;
+        const { kit: kitZpls, specimen: specimenZpls } = generateZplsFromPayloadForPreview(payload, actualKitZPL, actualSpecimenZPL);
+
+        if (kitZpls.length === 0 && specimenZpls.length === 0) {
+            previewOutputArea.innerHTML = '<p>No ZPL generated based on the payload and templates.</p>';
+        } else {
+             if (kitZpls.length > 0) logStatus(`Previewing ${kitZpls.length} Kit ZPL(s).`, "info");
+             if (specimenZpls.length > 0) logStatus(`Previewing ${specimenZpls.length} Specimen ZPL(s).`, "info");
+        }
+        kitZpls.forEach(kz => displaySingleZplPreview(kz.zpl, kz.id, previewOutputArea)); // Defaults to ZPL dimensions
+        specimenZpls.forEach(sz => displaySingleZplPreview(sz.zpl, sz.id, previewOutputArea)); // Defaults to ZPL dimensions
+    });
+
+    printPayloadBtn.addEventListener('click', async () => { /* ... same detailed logging for individual results ... */
+        if (!printerWrapper) { logStatus("Printer wrapper not initialized.", "error"); return; }
+        logStatus("Preparing print job from main payload...", "info");
+        printPayloadBtn.disabled = true; previewPayloadBtn.disabled = true;
+
+        const payload = getAndPreparePayloadForProcessing();
+        if (!payload) {
+            printPayloadBtn.disabled = false; previewPayloadBtn.disabled = false; return;
+        }
+        const actualKitZPL = kitZplTemplateTextarea.value;
+        const actualSpecimenZPL = specimenZplTemplateTextarea.value;
+
+        console.log("Payload to be processed by wrapper:", JSON.stringify(payload, null, 2));
+        try {
+            const result = await printerWrapper.zebraPrintWrapper(payload, actualKitZPL, actualSpecimenZPL);
+            logStatus(`Main print wrapper finished.`, "info");
+            if (result.kitLabelSummary) {
+                const summary = result.kitLabelSummary;
+                logStatus(`Kit Labels (to ${summary.printerUsed || 'N/A'}): ${ (summary.results || []).filter(r=>r.status === 'success').length} sent. Errors/Skipped: ${(summary.results || []).filter(r=>r.status !== 'success').length}. Details below.`, summary.error || (summary.results || []).some(r=>r.status !== 'success') ? "warn" : "success");
+                (summary.results || []).forEach(r => logStatus(`  - Kit ${r.context ? (r.context.id || JSON.stringify(r.context.originalData)) : 'N/A'}: ${r.status}. Msg: ${r.message}`, r.status === 'success' ? 'info' : (r.status === 'skipped' ? 'warn':'error')));
+            }
+            if (result.specimenLabelSummary) {
+                 const summary = result.specimenLabelSummary;
+                 logStatus(`Specimen Labels (to ${summary.printerUsed || 'N/A'}): ${(summary.results || []).filter(r=>r.status === 'success').length} sent. Errors/Skipped: ${(summary.results || []).filter(r=>r.status !== 'success').length}. Details below.`, summary.error || (summary.results || []).some(r=>r.status !== 'success') ? "warn" : "success");
+                 (summary.results || []).forEach(r => logStatus(`  - Specimen ${r.context ? (r.context.id + " " + (r.context.specimenType || '') || JSON.stringify(r.context.originalData)) : 'N/A'}: ${r.status}. Msg: ${r.message}`, r.status === 'success' ? 'info' : (r.status === 'skipped' ? 'warn':'error')));
+            }
+            if(result.errorsEncountered && result.errorsEncountered.length > 0) {
+                logStatus(`Overall orchestration errors: ${result.errorsEncountered.join('; ')}`, "error");
+            }
+            console.log("Detailed Print Result:", result);
+        } catch (error) {
+            logStatus(`Main print job processing EXCEPTION: ${error.message || error}`, "error");
+        } finally {
+            printPayloadBtn.disabled = false; previewPayloadBtn.disabled = false;
         }
     });
 
+    // --- Direct ZPL Printing and Previewing ---
+    previewDirectZplBtn.addEventListener('click', () => {
+        logStatus("Previewing Direct ZPL...", "info");
+        previewOutputArea.innerHTML = ''; previewItemCounter = 0;
+        const zpl = directZplInputTextarea.value;
+        const printerName = directZplPrinterNameInput.value.trim();
+        const width = directZplWidthInput.value.trim(); // Get width
+        const height = directZplHeightInput.value.trim(); // Get height
 
-    // --- Print Button Logic (remains the same as previous Handlebars version) ---
-    printBtn.addEventListener('click', async () => { /* ... same as previous Handlebars version ... */
-        if (!printerWrapper || !printerWrapper.getSelectedPrinter()) { logStatus("Please scan and select printer.", "error"); return; }
-        if (zplTemplateTextarea.value.trim() === "") { logStatus("ZPL Template cannot be empty.", "error"); return; }
+        if (!zpl.trim()) {
+            logStatus("Direct ZPL input is empty.", "warn"); return;
+        }
+        // Pass width and height to displaySingleZplPreview if they are provided
+        const labelWidthForPreview = width ? parseFloat(width) : null;
+        const labelHeightForPreview = height ? parseFloat(height) : null;
 
-        const gdtClientID = document.getElementById('gdtClientID').value;
-        const fulfillmentEntityID = document.getElementById('fulfillmentEntityID').value;
-        const accountID = document.getElementById('accountID').value;
-        const lotNumber = document.getElementById('lotNumber').value;
-        const kitSKU = document.getElementById('kitSKU').value;
-        const expirationDate = document.getElementById('expirationDate').value;
-        const kitID = document.getElementById('kitID').value;
-        const printCount = parseInt(document.getElementById('printCount').value) || 1;
+        if ((width && !height) || (!width && height)) {
+            logStatus("For custom preview dimensions, please provide both width and height, or leave both blank to use ZPL defaults.", "warn");
+        }
+        
+        displaySingleZplPreview(zpl, `Direct ZPL (for printer: ${printerName || 'Any'})`, previewOutputArea, labelWidthForPreview, labelHeightForPreview);
+    });
 
-        if (!kitID || !lotNumber || !kitSKU || !expirationDate) {
-            logStatus("Please fill in KitID, LotNumber, KitSKU, and ExpirationDate.", "error");
-            return;
+    printDirectZplBtn.addEventListener('click', async () => {
+        if (!printerWrapper) { logStatus("Printer wrapper not initialized.", "error"); return; }
+        const zpl = directZplInputTextarea.value;
+        const printerIdentifier = directZplPrinterNameInput.value.trim();
+
+        if (!zpl.trim()) {
+            logStatus("Direct ZPL input is empty. Nothing to print.", "error"); return;
+        }
+        if (!printerIdentifier) {
+            logStatus("Printer Name/UID for Direct ZPL is required.", "error"); return;
         }
 
-        const kitLabelIDs = [];
-        for (let i = 0; i < printCount; i++) { kitLabelIDs.push({ "KitID": kitID }); }
-
-        const payload = {
-            "GDTClientID": gdtClientID ? parseInt(gdtClientID) : undefined,
-            "FulfillmentEntityID": fulfillmentEntityID ? parseInt(fulfillmentEntityID) : undefined,
-            "AccountID": accountID || undefined,
-            "KitLabelsRequest": {
-                "PrintSettingsID": "HTML_FORM_HANDLEBARS_PREVIEW_TEST",
-                "LotNumber": lotNumber, "KitSKU": kitSKU, "ExpirationDate": expirationDate,
-                "LabelSet": {
-                    "KitLabelData": {
-                        "LabelTemplateZPL": zplTemplateTextarea.value,
-                        "KitLabelIDs": kitLabelIDs
-                    }
-                }
-            }
-        };
-        logStatus("Initiating print job with payload...", "info");
-        console.log("Payload being sent:", JSON.stringify(payload, null, 2));
-        printBtn.disabled = true; previewBtn.disabled = true;
+        logStatus(`Attempting to print direct ZPL to printer: '${printerIdentifier}'...`, "info");
+        printDirectZplBtn.disabled = true; previewDirectZplBtn.disabled = true;
 
         try {
-            const result = await printerWrapper.zebraPrintWrapper(payload);
-            logStatus(`Print job summary: ${result.message}`, result.failedPrints > 0 || result.zplsGenerated < result.totalLabelsAttemptedRender ? "error" : "success");
-            console.log("Print Result:", result);
+            // Context for direct print, can be enhanced if needed
+            const directPrintContext = { type: "DirectPrint", id: `DirectZPL_${Date.now()}`, printerTarget: printerIdentifier };
+            const result = await printerWrapper.sendRawZplToPrinter(zpl, printerIdentifier, directPrintContext);
+            logStatus(`Direct ZPL Print to ${result.deviceName || printerIdentifier}: ${result.status} - ${result.message}`, result.status === 'success' ? 'success' : 'error');
+            // TODO: updateBackendForDirectLabel(result.context, result.status, result.message);
         } catch (error) {
-            let errorMessage = "Print job submission failed.";
-            if (error && error.message) errorMessage = error.message;
-            else if (typeof error === 'string') errorMessage = error;
-            logStatus(errorMessage, "error"); console.error("Detailed Print Error:", error);
+            logStatus(`Direct ZPL Print Failed: ${error.message || error}`, "error");
         } finally {
-            printBtn.disabled = false; previewBtn.disabled = false;
+            printDirectZplBtn.disabled = false; previewDirectZplBtn.disabled = false;
         }
     });
 
 </script>
-
 </body>
 </html>
