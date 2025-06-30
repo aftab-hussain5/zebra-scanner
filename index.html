@@ -48,9 +48,9 @@
         .preview-item img[src=""] { display: none; }
         .preview-item textarea { min-height: 100px; font-size: 0.8em; background-color: #fff; }
     </style>
-    <script type="text/javascript" src="./BrowserPrint-3.1.250.min.js"></script>
+    <script type="text/javascript" src="BrowserPrint-3.0.216.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.min.js"></script>
-    <script src="./script.js"></script>
+    <script src="lib.js"></script>
 </head>
 <body>
 
@@ -82,7 +82,7 @@
 ^FX Vertical Reference Text
 ^FO15,22 ^A0B,13,15^FD{{KitId}}^FS
 ^FX QR Code
-^FO45,10 ^BQN,2,4,Q,7^FD{{KitId}}^FS
+^FO45,10 ^BQN,2,4,Q,7^FD00{{KitId}}^FS
 ^FX Bottom Left Text
 ^FO15,115 ^A0N,25,20^FD{{KitType}}^FS
 ^FX --- Vertical Separator Line ---
